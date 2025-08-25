@@ -118,7 +118,10 @@ def cadastrar_usuario(nome, email, data_nasc, senha):
     add_usuario(usuario.to_dict())
 
     # Retorno de sucesso
-    return {"sucesso": True, "mensagem": f"Usuário {nome} cadastrado com sucesso!"}
+    return {
+        "sucesso": True,
+        "mensagem": (f"Usuário {nome} cadastrado com sucesso!"),
+    }
 
 
 def add_usuario(usuario_dict):
