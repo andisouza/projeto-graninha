@@ -1,7 +1,28 @@
-from datetime import date, datetime
+from fastapi import APIRouter
 from utils import carregar_json, salvar_json, gerar_id
+from datetime import date, datetime
+
+router = APIRouter()
 
 MOVIMENTACOES_FILE = "data/movimentacoes.json"
+
+
+# Criando os endpoints
+@router.get("/")
+def listar_todas(email: str):
+    return {"movimentacoes": listar_movimentacoes(email)}
+
+
+@router.post("/adicionar")
+def adicionar_movimentacao(
+    email: str,
+    tipo: str,
+    valor: float,
+    categoria: str,
+    descricao: str = "",
+    data: str = None,
+):
+    return movimentacao(email, tipo, valor, categoria, descricao, data)
 
 
 def movimentacao(email, tipo, valor, categoria, descricao="", data=None):
