@@ -1,8 +1,7 @@
-import json
-import os
+from utils import carregar_json, salvar_json, gerar_id
 import bcrypt
 
-from api.validacoes import (
+from app.validacoes import (
     validar_nome,
     validar_email,
     validar_data_nasc,
@@ -47,31 +46,17 @@ class Usuario:
 
 def carregar_usuarios():
     """
-    Carrega todos os usuários do arquivo JSON.
+    Carrega todos os usuários do arquivo JSON."""
 
-    Returns:
-        list: Lista de dicionários com os usuários cadastrados.
-              Lista vazia se o arquivo não existir ou estiver corrompido."""
-
-    if not os.path.exists(USUARIOS_FILE):
-        return []
-    with open(USUARIOS_FILE, "r", encoding="utf-8") as f:
-        try:
-            return json.load(f)
-        except json.JSONDecodeError:
-            return []
+    return carregar_json(USUARIOS_FILE)
 
 
 def salvar_usuarios(usuarios):
     """
     Salva a lista de usuários no arquivo JSON.
-
-    Parâmetros:
-        usuarios (list): Lista de dicionários de usuários.
     """
 
-    with open(USUARIOS_FILE, "w", encoding="utf-8") as f:
-        json.dump(usuarios, f, indent=4, ensure_ascii=False)
+    salvar_json(USUARIOS_FILE, usuarios)
 
 
 def cadastrar_usuario(nome, email, data_nasc, senha):
