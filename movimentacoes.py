@@ -1,38 +1,7 @@
-import json
-import os
 from datetime import date, datetime
-from uuid import uuid4
+from utils import carregar_json, salvar_json, gerar_id
 
 MOVIMENTACOES_FILE = "data/movimentacoes.json"
-
-
-def carregar_movimentacoes():
-    """
-    Carrega todas as movimentações do arquivo JSON.
-
-    Returns:
-        list: Lista de dicionários com as movimentações
-              Lista vazia se o arquivo não existir ou estiver corrompido."""
-
-    if not os.path.exists(MOVIMENTACOES_FILE):
-        return []
-    with open(MOVIMENTACOES_FILE, "r", encoding="utf-8") as f:
-        try:
-            return json.load(f)
-        except json.JSONDecodeError:
-            return []
-
-
-def salvar_movimentacoes(movimentacoes):
-    """
-    Salva a lista de movimentações no arquivo JSON.
-
-    Args:
-        movimentacoes (list): Lista de dicionários de movimentações.
-    """
-
-    with open(MOVIMENTACOES_FILE, "w", encoding="utf-8") as f:
-        json.dump(movimentacoes, f, indent=4, ensure_ascii=False)
 
 
 def movimentacao(email, tipo, valor, categoria, descricao="", data=None):
@@ -46,10 +15,10 @@ def movimentacao(email, tipo, valor, categoria, descricao="", data=None):
     if data is None:
         data = date.today().isoformat()
 
-    movimentacoes = carregar_movimentacoes()
+    movimentacoes = carregar_json(MOVIMENTACOES_FILE)
 
     movimentacao = {
-        "id": str(uuid4()),
+        "id": gerar_id(),
         "email": email,
         "tipo": tipo,
         "valor": valor,
@@ -59,7 +28,7 @@ def movimentacao(email, tipo, valor, categoria, descricao="", data=None):
     }
 
     movimentacoes.append(movimentacao)
-    salvar_movimentacoes(movimentacoes)
+    salvar_json(MOVIMENTACOES_FILE, movimentacoes)
 
     return {
         "sucesso": True,
@@ -72,7 +41,7 @@ def listar_movimentacoes(email):
     Lista todas as movimentações do usuário.
     """
 
-    movimentacoes = carregar_movimentacoes()
+    movimentacoes = carregar_json(MOVIMENTACOES_FILE)
     return [m for m in movimentacoes if m["email"] == email]
 
 
@@ -130,13 +99,13 @@ def remover_movimentacao(email, mov_id):
     Remove uma movimentação pelo id.
     """
 
-    movimentacoes = carregar_movimentacoes()
+    movimentacoes = carregar_json(MOVIMENTACOES_FILE)
     novas_movs = [
         m for m in movimentacoes if not (m["id"] == mov_id and m["email"] == email)
     ]
 
     if len(novas_movs) < len(movimentacoes):
-        salvar_movimentacoes(novas_movs)
+        salvar_json(MOVIMENTACOES_FILE, novas_movs)
         return {"sucesso": True, "mensagem": "Movimentação removida com sucesso!"}
     else:
         return {"sucesso": False, "mensagem": "Movimentação não encontrada."}
