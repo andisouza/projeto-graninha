@@ -4,7 +4,7 @@ from uuid import uuid4
 
 
 def carregar_json(caminho_arquivo):
-    if not os.path.exist(caminho_arquivo):
+    if not os.path.exists(caminho_arquivo):
         return []
     with open(caminho_arquivo, "r", encoding="utf-8") as f:
         try:

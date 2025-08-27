@@ -1,4 +1,5 @@
-from utils import carregar_json, salvar_json, gerar_id
+from app.utils import carregar_json, salvar_json, gerar_id
+
 
 CATEGORIAS = [
     "Alimentação",
@@ -19,7 +20,9 @@ def listar_categorias(email):
     """
 
     categorias_usuario = carregar_json(CATEGORIAS_USUARIO_FILE)
+
     usuario = next((c for c in categorias_usuario if c["email"] == email), None)
+
     return usuario["categorias"] if usuario else CATEGORIAS
 
 
@@ -34,9 +37,9 @@ def adicionar_categoria(email, nova_categoria):
     categorias_usuario = carregar_json(CATEGORIAS_USUARIO_FILE)
 
     # Verifica se já existe a categoria
-    categorias_do_usuario = [
-        c["categoria"] for c in categorias_usuario if c["email"] == email
-    ]
+    usuario_categs = [c for c in categorias_usuario if c["email"] == email]
+
+    categorias_do_usuario = [c["categoria"] for c in usuario_categs]
 
     if nova_categoria in categorias_do_usuario:
         return {"sucesso": False, "mensagem": "Categoria já existente"}
@@ -55,14 +58,14 @@ def remover_categoria(email, categ_id):
     """
 
     categorias_usuario = carregar_json(CATEGORIAS_USUARIO_FILE)
-    novas_categs = [
-        c
-        for c in categorias_usuario
-        if not (c["id"] == categ_id and c["email"] == email)
-    ]
 
-    if len(novas_categs) < len(categorias_usuario):
-        salvar_json(CATEGORIAS_USUARIO_FILE, novas_categs)
-        return {"sucesso": True, "mensagem": "Categoria removida com sucesso!"}
-    else:
+    usuario_categs = [c for c in categorias_usuario if c["email"] == email]
+    categoria_a_remover = next((c for c in usuario_categs if c["id"] == categ_id), None)
+
+    if not categoria_a_remover:
         return {"sucesso": False, "mensagem": "Categoria não encontrada."}
+
+    novas_categs = [c for c in categorias_usuario if c != categoria_a_remover]
+
+    salvar_json(CATEGORIAS_USUARIO_FILE, novas_categs)
+    return {"sucesso": True, "mensagem": "Categoria removida com sucesso!"}

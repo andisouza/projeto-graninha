@@ -1,5 +1,6 @@
-from utils import carregar_json, salvar_json, gerar_id
+from app.utils import carregar_json, salvar_json
 import bcrypt
+from app.models import Usuario
 
 from app.validacoes import (
     validar_nome,
@@ -8,40 +9,8 @@ from app.validacoes import (
     validar_senha,
 )
 
+
 USUARIOS_FILE = "data/usuarios.json"
-
-
-class Usuario:
-    def __init__(self, nome, email, data_nasc, senha):
-        self.nome = nome
-        self.email = email
-        self.data_nasc = data_nasc
-        self.senha = senha
-        self.transacoes = []  # Lista de transações do usuário
-
-    def add_transacao(self, transacao):
-        self.transacoes.append(transacao)
-
-    def calcular_saldo(self):
-        saldo = 0
-        for t in self.transacoes:
-            if t["tipo"] == "receita":
-                saldo += t["valor"]
-            else:
-                saldo -= t["valor"]
-        return saldo
-
-    def listar_historico(self):
-        return self.transacoes
-
-    def to_dict(self):
-        return {
-            "nome": self.nome,
-            "email": self.email,
-            "data_nasc": self.data_nasc,
-            "senha": self.senha,
-            "transacoes": self.transacoes,
-        }
 
 
 def carregar_usuarios():
@@ -57,6 +26,18 @@ def salvar_usuarios(usuarios):
     """
 
     salvar_json(USUARIOS_FILE, usuarios)
+
+
+def add_usuario(usuario_dict):
+    """
+    Adiciona um usuário na base de dados JSON.
+
+    Parâmetros:
+        usuario_dict (dict): Dicionário com os dados do usuário."""
+
+    usuarios = carregar_usuarios()
+    usuarios.append(usuario_dict)
+    salvar_usuarios(usuarios)
 
 
 def cadastrar_usuario(nome, email, data_nasc, senha):
@@ -109,23 +90,6 @@ def cadastrar_usuario(nome, email, data_nasc, senha):
     }
 
 
-def add_usuario(usuario_dict):
-    """
-    Adiciona um usuário na base de dados JSON.
-
-    Parâmetros:
-        usuario_dict (dict): Dicionário com os dados do usuário."""
-
-    usuarios = carregar_usuarios()
-    usuarios.append(usuario_dict)
-    salvar_usuarios(usuarios)
-
-
-def usuario_publico(usuario_dict):
-    """Retorna apenas os dados públicos do usuário, sem a senha."""
-    return {k: v for k, v in usuario_dict.items() if k != "senha"}
-
-
 def login(email, senha):
     """
     Verifica se o email e senha correspondem
@@ -142,15 +106,20 @@ def login(email, senha):
     usuarios = carregar_usuarios()
     usuario = next((u for u in usuarios if u["email"] == email), None)
 
-    if usuario:
-        senha_bytes = senha.encode()
-        if bcrypt.checkpw(senha_bytes, usuario["senha"].encode()):
-            return {
-                "sucesso": True,
-                "mensagem": "Login realizado com sucesso",
-                "usuario": usuario_publico(usuario),
-            }
-        else:
-            return {"sucesso": False, "mensagem": "Senha incorreta"}
+    if not usuario:
+        return {"sucesso": False, "mensagem": "Email ou senha incorretos"}
 
-    return {"sucesso": False, "mensagem": "Email ou senha incorretos"}
+    if not bcrypt.checkpw(senha.encode(), usuario["senha"].encode()):
+        return {"sucesso": False, "mensagem": "Senha incorreta"}
+
+    # Retorna dados públicos
+    return {
+        "sucesso": True,
+        "mensagem": "Login realizado com sucesso",
+        "usuario": {k: v for k, v in usuario.items() if k != "senha"},
+    }
+
+
+def usuario_publico(usuario_dict):
+    """Retorna apenas os dados públicos do usuário, sem a senha."""
+    return {k: v for k, v in usuario_dict.items() if k != "senha"}
